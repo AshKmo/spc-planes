@@ -8,9 +8,9 @@ cooldown = 0
 def plane_ai(me, them, bullets):
     global cooldown
 
-    a = math.atan2(me[1] - them[1], them[0] - me[0]) * 180 / math.pi
+    a = math.atan2(me.y - them.y, them.x - me.x) * 180 / math.pi
 
-    d = ((them[0] - me[0]) ** 2 + (them[1] - me[1]) ** 2) ** 0.5
+    d = ((them.x - me.x) ** 2 + (them.y - me.y) ** 2) ** 0.5
 
     if cooldown < 1 or d > 300:
         pass
