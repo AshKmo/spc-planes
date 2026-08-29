@@ -3,6 +3,8 @@ import pygame
 import plane1_ai
 import plane2_ai
 
+from types import SimpleNamespace
+
 GAME_WIDTH = 800
 GAME_HEIGHT = 600
 
@@ -57,8 +59,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    (plane1.r, plane1.shooting) = plane1.ai_f((plane1.p.x, plane1.p.y, plane1.r), (plane2.p.x, plane2.p.y, plane2.r), [(b.p, b.r) for b in bullets])
-    (plane2.r, plane2.shooting) = plane2.ai_f((GAME_WIDTH - plane2.p.x, plane2.p.y, flip_angle(plane2.r)), (GAME_WIDTH - plane1.p.x, plane1.p.y, flip_angle(plane1.r)), [(GAME_WIDTH - b.p.x, b.p.y, flip_angle(b.r)) for b in bullets])
+    (plane1.r, plane1.shooting) = plane1.ai_f(SimpleNameSpace(**{'x': plane1.p.x, 'y': plane1.p.y, 'rot': plane1.r}), SimpleNamespace(**{'x': plane2.p.x, 'y': plane2.p.y, 'rot': plane2.r}), [(b.p, b.r) for b in bullets])
+    (plane2.r, plane2.shooting) = plane2.ai_f(SimpleNameSpace(**{GAME_WIDTH - plane2.p.x, plane2.p.y, flip_angle(plane2.r)}), SimpleNameSpace(**{GAME_WIDTH - plane1.p.x, plane1.p.y, flip_angle(plane1.r)}), [(GAME_WIDTH - b.p.x, b.p.y, flip_angle(b.r)) for b in bullets])
     plane1.r = plane1.r % 360
     plane2.r = flip_angle(plane2.r)
 
