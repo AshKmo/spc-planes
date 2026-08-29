@@ -83,7 +83,6 @@ while running:
             x = GAME_WIDTH - plane1.p.x,
             y = plane1.p.y,
             rot = flip_angle(plane1.r),
-            }
         ),
         [(GAME_WIDTH - b.p.x, b.p.y, flip_angle(b.r)) for b in bullets],
     )
