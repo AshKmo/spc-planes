@@ -69,23 +69,20 @@ while running:
             running = False
 
     (plane1.r, plane1.shooting) = plane1.ai_f(
-        SimpleNamespace(**{"x": plane1.p.x, "y": plane1.p.y, "rot": plane1.r}),
-        SimpleNamespace(**{"x": plane2.p.x, "y": plane2.p.y, "rot": plane2.r}),
+        SimpleNamespace(x = plane1.p.x, y = plane1.p.y, rot = plane1.r),
+        SimpleNamespace(x = plane2.p.x, y = plane2.p.y, rot=  plane2.r),
         [(b.p, b.r) for b in bullets],
     )
     (plane2.r, plane2.shooting) = plane2.ai_f(
         SimpleNamespace(
-            **{
-                "x": GAME_WIDTH - plane2.p.x,
-                "y": plane2.p.y,
-                "rot": flip_angle(plane2.r),
-            }
+            x = GAME_WIDTH - plane2.p.x,
+            y = plane2.p.y,
+            rot = flip_angle(plane2.r),
         ),
         SimpleNamespace(
-            **{
-                "x": GAME_WIDTH - plane1.p.x,
-                "y": plane1.p.y,
-                "rot": flip_angle(plane1.r),
+            x = GAME_WIDTH - plane1.p.x,
+            y = plane1.p.y,
+            rot = flip_angle(plane1.r),
             }
         ),
         [(GAME_WIDTH - b.p.x, b.p.y, flip_angle(b.r)) for b in bullets],
