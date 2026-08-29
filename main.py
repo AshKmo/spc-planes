@@ -71,7 +71,7 @@ while running:
     (plane1.r, plane1.shooting) = plane1.ai_f(
         SimpleNamespace(x = plane1.p.x, y = plane1.p.y, rot = plane1.r),
         SimpleNamespace(x = plane2.p.x, y = plane2.p.y, rot=  plane2.r),
-        [(b.p, b.r) for b in bullets],
+        [SimpleNamespace(x=b.p.x, y=b.p.y, rot=b.r) for b in bullets],
     )
     (plane2.r, plane2.shooting) = plane2.ai_f(
         SimpleNamespace(
@@ -84,7 +84,7 @@ while running:
             y = plane1.p.y,
             rot = flip_angle(plane1.r),
         ),
-        [(GAME_WIDTH - b.p.x, b.p.y, flip_angle(b.r)) for b in bullets],
+        [SimpleNamespace(x=GAME_WIDTH - b.p.x, y=b.p.y, rot=flip_angle(b.r)) for b in bullets],
     )
     plane1.r = plane1.r % 360
     plane2.r = flip_angle(plane2.r)
