@@ -9,23 +9,21 @@ from time import time
 import plane1_ai
 import plane2_ai
 
-GAME_WIDTH = 800
-GAME_HEIGHT = 600
-
-TICK_TIME = 1000 / 50
-
-TIME_LIMIT = 1500
-
-PLANE_SPEED = 4
-PLANE_TURN_SPEED = 10
-PLANE_SHOOT_COOLDOWN = 30
-PLANE_RADIUS = 10
-PLANE_HEALTH = 5
-
-BULLET_SPAWN_DISTANCE = 11
-BULLET_SPEED = 8
-BULLET_RADIUS = 5
-BULLET_LIFETIME = 60
+from constants import (
+    GAME_WIDTH,
+    GAME_HEIGHT,
+    TICK_TIME,
+    TIME_LIMIT,
+    PLANE_SPEED,
+    PLANE_TURN_SPEED,
+    PLANE_SHOOT_COOLDOWN,
+    PLANE_RADIUS,
+    PLANE_HEALTH,
+    BULLET_SPAWN_DISTANCE,
+    BULLET_SPEED,
+    BULLET_RADIUS,
+    BULLET_LIFETIME,
+)
 
 image_plane1 = Image.open("assets/plane1.png")
 image_plane2 = Image.open("assets/plane2.png")
