@@ -10,16 +10,20 @@
 # all angles are in degrees of anticlockwise rotation from due east
 
 # helpful information:
-# - the arena is 800 pixels wide and 600 pixels long
-# - planes are modeled by circles with a radius of 25 pixels
-# - bullets are modeled by circles with a radius of 5 pixels
+# - there are 50 ticks per second
+# - the arena is 800 pixels wide and 600 pixels tall
+# - your plane's hitbox is a circle with a radius of 10 pixels
+# - your bullet's hitbox is a circles with a radius of 5 pixels
 # - bullets disappear as soon as their position is outside the arena
-# - the positions of planes are limited to the arena
+# - there are invisible walls on each side of the arena
 # - bullets travel at 8 pixels per tick, while planes travel at 4 pixels per tick
+# - your plane's turning speed is capped at 10 degrees per tick
 
 # plane2's AI will have a flipped perspective so that it thinks it is plane1
 # this means that you can copy someone else's plane AI into plane2_ai.py and it will always work as expected
 
+import numpy
+
 def plane_ai(me, them, bullets):
     # set the plane's angle to 40 degrees anticlockwise from due east, and make it fire bullets
-    return 40, True
+    return 0, True
