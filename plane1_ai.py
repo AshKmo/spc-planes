@@ -6,7 +6,10 @@
 # - a tuple containing the x position, y position and rotation (in degrees) of the plane
 # - a tuple containing the x position, y position and rotation (in degrees) of the enemy's plane
 # - a list of tuples containing the x position, y position and rotation (in degrees) of each bullet on the map
-# this function will be called every tick, and must return a tuple containing the new rotation of the plane (in degrees) and whether or not the plane should be firing bullets (True or False)
+# this function will be called every tick, and must return a tuple containing the following:
+# - the speed that the plane should travel at, between 0 and 1 (inclusive)
+# - the new rotation target of the plane (in degrees)
+# - whether or not the plane should be firing bullets (True or False)
 # all angles are in degrees of anticlockwise rotation from due east
 
 # helpful information:
@@ -25,5 +28,5 @@
 import numpy
 
 def plane_ai(me, them, bullets):
-    # set the plane's angle to 40 degrees anticlockwise from due east, and make it fire bullets
-    return 0, True
+    # set the plane's speed to 100%, set its angle to 40 degrees anticlockwise from due east, and make it fire bullets
+    return 1, 0, True

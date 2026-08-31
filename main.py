@@ -66,6 +66,8 @@ class Plane:
         self.rotation = rotation % 360
         self.desired_rotation = self.rotation
 
+        self.speed_fraction = 1
+
         self.flipped = flipped
         self.health = PLANE_HEALTH
         self.shoot_cooldown = 0
@@ -82,9 +84,10 @@ class Plane:
 
     def call_ai(self: Plane, enemy: Plane, bullets: list[Bullet]) -> tuple[float, bool]:
         results = self.ai(self.get_data(flipped=self.flipped), enemy.get_data(flipped=self.flipped), [b.get_data(flipped=self.flipped) for b in bullets])
-        new_rotation: float = results[0]
-        shooting: bool = results[1]
-        return flip_angle(new_rotation) if self.flipped else new_rotation % 360, shooting
+        new_speed_fraction: float = float(results[0])
+        new_rotation: float = float(results[1])
+        shooting: bool = bool(results[2])
+        return np.clip(new_speed_fraction, 0, 1), flip_angle(new_rotation) if self.flipped else new_rotation % 360, shooting
 
     def update_graphics(self):
         self.rendered_image = ImageTk.PhotoImage(self.image.rotate(self.rotation, expand=True))
@@ -177,20 +180,22 @@ def tick():
     global planes
     global bullets
 
-    plane1_new_rotation, plane1_shooting = plane1.call_ai(plane2, bullets)
-    plane2_new_rotation, plane2_shooting = plane2.call_ai(plane1, bullets)
+    plane1_new_speed, plane1_new_rotation, plane1_shooting = plane1.call_ai(plane2, bullets)
+    plane2_new_speed, plane2_new_rotation, plane2_shooting = plane2.call_ai(plane1, bullets)
 
     plane1.desired_rotation = plane1_new_rotation
+    plane1.speed_fraction = plane1_new_speed
     plane1.shooting = plane1_shooting
 
     plane2.desired_rotation = plane2_new_rotation
+    plane2.speed_fraction = plane2_new_speed
     plane2.shooting = plane2_shooting
 
     for plane in planes:
         ad = angle_diff(plane.desired_rotation, plane.rotation)
         plane.rotation = (plane.rotation + np.sign(ad) * min(PLANE_TURN_SPEED, abs(ad))) % 360
         plane_direction = angle_to_vector(plane.rotation)
-        plane.position = np.clip(plane.position + PLANE_SPEED * plane_direction, min=[0,0], max=[GAME_WIDTH-1,GAME_HEIGHT-1])
+        plane.position = np.clip(plane.position + PLANE_SPEED * plane.speed_fraction * plane_direction, min=[0,0], max=[GAME_WIDTH-1,GAME_HEIGHT-1])
 
         if plane.shoot_cooldown <= 0:
             if plane.shooting:

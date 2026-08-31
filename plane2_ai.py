@@ -25,4 +25,4 @@ def plane_ai(me, them, bullets):
             closest = dotd
             a = ba + (90 if dotr > 0 else -90)
 
-    return np.degrees(a), True
+    return 1, np.degrees(a), True
