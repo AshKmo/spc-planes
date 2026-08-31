@@ -1,5 +1,4 @@
-# this file is where the AI of your opponent goes
-# below is a dodgy enemy AI example
+# ash's dodgy AI example
 
 import numpy as np
 
