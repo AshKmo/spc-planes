@@ -11,7 +11,7 @@ Start by running `python main.py`. Two planes will fly across the screen firing 
 
 `plane1_ai.py` contains the code for the blue plane. This is where your code goes. Your task is to edit this file to make the plane smarter.
 
-`plane2_ai.py` contains the code for the enemy plane. The simulation is designed so that the AI for Plane 2 will think that it is Plane 1, which means that you can copy someone else's `plane1_ai.py` into `plane2_ai.py` and it will work as the author intended. Once you've completed your `plane1_ai.py`, share it on the SPC Discord to see if it can beat anyone else's.
+`plane2_ai.py` contains the code for the enemy plane. The simulation is designed so that the AI for Plane 2 will think that it is Plane 1, which means that you can copy someone else's `plane1_ai.py` into `plane2_ai.py` and it will work as the author intended. Once you've completed your `plane1_ai.py`, share it on the [SPC Discord](https://discord.com/invite/As9fscu6gV) to see if it can beat anyone else's.
 
 `zain_ai.py`, `samson_ai.py` and `zain_ai.py` are example AIs that you can copy into `plane2_ai.py` to fight against your plane.
 ## Rules
