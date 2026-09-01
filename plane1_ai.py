@@ -34,6 +34,7 @@
 # this means you can send your AI to someone else and they can copy it into plane2_ai.py and it will work as expected
 
 import numpy
+from constants import *
 
 def plane_ai(me, them, bullets):
     # set the plane's speed to 100%, set its angle to 40 degrees anticlockwise from due east, and make it fire bullets
