@@ -9,21 +9,7 @@ from time import time
 import plane1_ai
 import plane2_ai
 
-from constants import (
-    GAME_WIDTH,
-    GAME_HEIGHT,
-    TICK_TIME,
-    TIME_LIMIT,
-    PLANE_SPEED,
-    PLANE_TURN_SPEED,
-    PLANE_SHOOT_COOLDOWN,
-    PLANE_RADIUS,
-    PLANE_HEALTH,
-    BULLET_SPAWN_DISTANCE,
-    BULLET_SPEED,
-    BULLET_RADIUS,
-    BULLET_LIFETIME,
-)
+from constants import *
 
 image_plane1 = Image.open("assets/plane1.png")
 image_plane2 = Image.open("assets/plane2.png")
@@ -209,6 +195,12 @@ def tick():
             plane.shoot_cooldown -= 1
 
     for bullet in bullets:
+        if not 0 <= bullet.position[0] < GAME_WIDTH:
+            bullet.rotation = (180 - bullet.rotation) % 360
+
+        if not 0 <= bullet.position[1] < GAME_WIDTH:
+            bullet.rotation = 360 - bullet.rotation
+
         bullet.position = bullet.position + BULLET_SPEED * angle_to_vector(bullet.rotation)
 
         bullet.update_graphics()
