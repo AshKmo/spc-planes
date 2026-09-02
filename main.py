@@ -22,8 +22,13 @@ def angle_to_vector(a: float) -> np.ndarray:
     a = np.radians(a)
     return np.array([np.cos(a), -np.sin(a)])
 
-def angle_diff(a, b):
-    return (a - b + 180) % 360 - 180
+def angle_diff(a, b, flipped = False):
+    result = (a - b + 180) % 360 - 180
+
+    if flipped and result == -180:
+        return 180
+
+    return result
 
 class Plane:
     @dataclass
@@ -135,7 +140,7 @@ plane1 = Plane(
         image_plane1,
         plane1_ai.plane_ai,
         np.array([100, GAME_HEIGHT / 2]),
-        0
+        0.0
         )
 
 plane2 = Plane(
@@ -144,10 +149,10 @@ plane2 = Plane(
         image_plane2,
         plane2_ai.plane_ai,
         np.array([GAME_WIDTH - 100, GAME_HEIGHT / 2]),
-        180,
+        180.0,
         True
         )
- 
+
 planes: list[Plane] = [plane1, plane2]
 bullets: list[Bullet] = []
 
@@ -176,7 +181,7 @@ def tick():
     plane2.shooting = plane2_shooting
 
     for plane in planes:
-        ad = angle_diff(plane.desired_rotation, plane.rotation)
+        ad = angle_diff(plane.desired_rotation, plane.rotation, plane.flipped)
         plane.rotation = (plane.rotation + np.sign(ad) * min(PLANE_TURN_SPEED, abs(ad))) % 360
         plane_direction = angle_to_vector(plane.rotation)
         plane.position = np.clip(plane.position + PLANE_SPEED * plane.speed_fraction * plane_direction, min=[0,0], max=[GAME_WIDTH-1,GAME_HEIGHT-1])
@@ -198,7 +203,7 @@ def tick():
         if not 0 <= bullet.position[0] < GAME_WIDTH:
             bullet.rotation = (180 - bullet.rotation) % 360
 
-        if not 0 <= bullet.position[1] < GAME_WIDTH:
+        if not 0 <= bullet.position[1] < GAME_HEIGHT:
             bullet.rotation = 360 - bullet.rotation
 
         bullet.position = bullet.position + BULLET_SPEED * angle_to_vector(bullet.rotation)
