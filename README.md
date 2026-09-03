@@ -17,7 +17,7 @@ Start by running `python main.py`. Two planes will fly across the screen firing 
 
 Once you've developed your AI, share it on the [SPC Discord server](https://discord.com/invite/As9fscu6gV) to see if it can beat anyone else's. At the end of the challenge we'll also host a round robin tournament in a Discord voice channel to determine the ultimate victor.
 
-`zain_ai.py`, `samson_ai.py` and `ash_ai.py` are example AIs that you can copy into `plane2_ai.py` to fight against your plane.
+In the `examples` folder, `zain_ai.py`, `samson_ai.py` and `ash_ai.py` are example AIs that you can copy into `plane2_ai.py` to fight against your plane. Feel free to take inspiration from our code.
 
 More information about how to write the code can be found in `plane1_ai.py`.
 ## Rules
