@@ -45,9 +45,8 @@ def plane_ai(me, them, bullets):
     to_enemy = e - p
     dist = np.linalg.norm(to_enemy)
 
-    # bearing straight at the enemy (screen y grows downward, so flip y
-    # like ash_ai.py does to get a normal math angle)
-    angle_to_enemy = np.degrees(np.arctan2(-to_enemy[1], to_enemy[0]))
+    # bearing straight at the enemy
+    angle_to_enemy = np.degrees(np.arctan2(to_enemy[1], to_enemy[0]))
 
     # --- movement: hold at KITE_RANGE, strafing sideways rather than
     # sitting still, so we're not just parked as an easy target ---
@@ -78,12 +77,12 @@ def plane_ai(me, them, bullets):
     for bullet in bullets:
         ba = np.radians(bullet.rotation)
         rel = p - np.array([bullet.x, bullet.y])
-        bullet_dir = np.array([np.cos(ba), -np.sin(ba)])
+        bullet_dir = np.array([np.cos(ba), np.sin(ba)])
 
         # component of our offset along the bullet's travel direction,
         # and perpendicular to it
         along = rel.dot(bullet_dir)
-        side = rel.dot(np.array([bullet_dir[1], -bullet_dir[0]]))
+        side = rel.dot(np.array([-bullet_dir[1], bullet_dir[0]]))
 
         if (
             DODGE_FORWARD_MIN < along <= DODGE_FORWARD_MAX

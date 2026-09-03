@@ -47,7 +47,7 @@ def plane_ai(me, them, bullets):
         next_x = them.x + enemy_dx * time
         next_y = them.y + enemy_dy * time
 
-    a = np.atan2(me.y - next_y, next_x - me.x)
+    a = np.atan2(next_y - me.y, next_x - me.x)
 
     last_enemy_x = them.x
     last_enemy_y = them.y

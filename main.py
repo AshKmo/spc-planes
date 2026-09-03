@@ -19,7 +19,7 @@ def flip_angle(a: float) -> float:
 
 def angle_to_vector(a: float) -> np.ndarray:
     a = np.radians(a)
-    return np.array([np.cos(a), -np.sin(a)])
+    return np.array([np.cos(a), np.sin(a)])
 
 def angle_diff(a, b):
     return (a - b + 180) % 360 - 180
@@ -59,7 +59,7 @@ class Plane:
 
         def update_graphics(self):
             position = self.get_position(self.truly_flipped)
-            self.canvas.coords(self.tk_image, position[0], position[1])
+            self.canvas.coords(self.tk_image, position[0], GAME_HEIGHT - position[1])
             self.rendered_image = ImageTk.PhotoImage(image_bullet.rotate(self.get_rotation(self.truly_flipped), expand=True))
             self.canvas.itemconfigure(self.tk_image, image=self.rendered_image)
 
@@ -179,10 +179,10 @@ class Plane:
         position = self.get_position(self.truly_flipped)
 
         self.rendered_image = ImageTk.PhotoImage(self.image.rotate(self.get_rotation(self.truly_flipped), expand=True))
-        self.canvas.coords(self.tk_image, position[0], position[1])
+        self.canvas.coords(self.tk_image, position[0], GAME_HEIGHT - position[1])
         self.canvas.itemconfigure(self.tk_image, image=self.rendered_image)
 
-        self.canvas.coords(self.tk_health_text, *np.clip([position[0], position[1] - 30], min=[20, 20], max=[GAME_WIDTH - 20, GAME_HEIGHT - 20]))
+        self.canvas.coords(self.tk_health_text, *np.clip([position[0], GAME_HEIGHT - position[1] + 30], min=[20, 20], max=[GAME_WIDTH - 20, GAME_HEIGHT - 20]))
         self.canvas.itemconfigure(self.tk_health_text, text=f"{self.health}")
 
 root = tk.Tk()
