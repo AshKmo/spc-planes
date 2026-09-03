@@ -1,15 +1,14 @@
 from PIL import Image, ImageTk
 import numpy as np
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 import tkinter as tk
 from tkinter import messagebox
 from time import time
 
+from constants import *
 import plane1_ai
 import plane2_ai
-
-from constants import *
 
 image_plane1 = Image.open("assets/plane1.png")
 image_plane2 = Image.open("assets/plane2.png")
@@ -22,15 +21,51 @@ def angle_to_vector(a: float) -> np.ndarray:
     a = np.radians(a)
     return np.array([np.cos(a), -np.sin(a)])
 
-def angle_diff(a, b, flipped = False):
-    result = (a - b + 180) % 360 - 180
-
-    if flipped and result == -180:
-        return 180
-
-    return result
+def angle_diff(a, b):
+    return (a - b + 180) % 360 - 180
 
 class Plane:
+    class Bullet:
+        @dataclass
+        class BulletData:
+            x: float
+            y: float
+            rotation: float
+            lifetime: int
+
+        def __init__(self, position: np.ndarray, rotation: float, canvas: tk.Canvas, truly_flipped: bool):
+            self.position = position
+            self.rotation = rotation
+            self.lifetime = BULLET_LIFETIME
+
+            self.new_lifetime = self.lifetime
+
+            self.truly_flipped = truly_flipped
+
+            self.canvas = canvas
+            self.rendered_image = None
+            self.tk_image = self.canvas.create_image((0, 0))
+
+        def get_position(self, flipped = False):
+            return np.array([GAME_WIDTH - self.position[0], self.position[1]]) if flipped else self.position
+
+        def get_rotation(self, flipped = False):
+            return flip_angle(self.rotation) if flipped else self.rotation
+
+        def get_data(self, flipped = False):
+            position = self.get_position(flipped)
+            rotation = self.get_rotation(flipped)
+            return Plane.Bullet.BulletData(position[0], position[1], rotation, self.lifetime)
+
+        def update_graphics(self):
+            position = self.get_position(self.truly_flipped)
+            self.canvas.coords(self.tk_image, position[0], position[1])
+            self.rendered_image = ImageTk.PhotoImage(image_bullet.rotate(self.get_rotation(self.truly_flipped), expand=True))
+            self.canvas.itemconfigure(self.tk_image, image=self.rendered_image)
+
+        def destroy(self):
+            self.canvas.delete(self.tk_image)
+
     @dataclass
     class PlaneData:
         x: float
@@ -39,91 +74,116 @@ class Plane:
         health: int
         shoot_cooldown: int
 
-    def __init__(self: Plane, canvas: tk.Canvas, name: str, image: Image, ai: callable[[PlaneData, PlaneData, list[Bullet.BulletData]], (int, bool)], position: np.ndarray, rotation: float, flipped: bool = False):
-        self.canvas = canvas
+    def __init__(self, name: str, ai: callable[PlaneData, PlaneData, list[Bullet.BulletData]], canvas: tk.Canvas, image: Image, truly_flipped: bool):
         self.name = name
+        self.position = np.array([100, GAME_HEIGHT / 2])
+        self.throttle = 1
+        self.rotation = 0
+        self.health = PLANE_HEALTH
+        self.shooting = False
+        self.shoot_cooldown = 0
+        self.ai = ai
 
+        self.desired_throttle = self.throttle
+        self.desired_rotation = self.rotation
+        self.new_health = self.health
+
+        self.bullets = []
+
+        self.other_plane = None
+
+        self.truly_flipped = truly_flipped
+
+        self.canvas = canvas
         self.image = image
         self.tk_image = self.canvas.create_image((0, 0))
         self.rendered_image = None
 
         self.tk_health_text = canvas.create_text((0, 0), font=(None, 16), fill="white")
 
-        self.ai = ai
-        self.position = position
+    def get_position(self, flipped = False):
+        return np.array([GAME_WIDTH - self.position[0], self.position[1]]) if flipped else self.position
 
-        self.rotation = rotation % 360
-        self.desired_rotation = self.rotation
+    def get_rotation(self, flipped = False):
+        return flip_angle(self.rotation) if flipped else self.rotation
 
-        self.speed_fraction = 1
+    def get_data(self, flipped = False):
+        position = self.get_position(flipped)
+        rotation = self.get_rotation(flipped)
+        return Plane.PlaneData(position[0], position[1], rotation, self.health, self.shoot_cooldown)
 
-        self.flipped = flipped
-        self.health = PLANE_HEALTH
-        self.shoot_cooldown = 0
-        self.shooting = False
+    def pre_tick(self):
+        desired_throttle, desired_rotation, shooting = self.ai(
+            self.get_data(),
+            self.other_plane.get_data(True),
+            [b.get_data() for b in self.bullets] + [b.get_data(True) for b in self.other_plane.bullets]
+        )
 
-    def get_data(self, flipped=False) -> PlaneData:
-        return self.PlaneData(
-                GAME_WIDTH - self.position[0] if flipped else self.position[0],
-                self.position[1],
-                flip_angle(self.rotation) if flipped else self.rotation,
-                self.health,
-                self.shoot_cooldown
-                )
+        self.desired_throttle = np.clip(float(desired_throttle), 0, 1)
+        self.desired_rotation = float(desired_rotation) % 360
+        self.shooting = bool(shooting)
 
-    def call_ai(self: Plane, enemy: Plane, bullets: list[Bullet]) -> tuple[float, bool]:
-        results = self.ai(self.get_data(flipped=self.flipped), enemy.get_data(flipped=self.flipped), [b.get_data(flipped=self.flipped) for b in bullets])
-        new_speed_fraction: float = float(results[0])
-        new_rotation: float = float(results[1])
-        shooting: bool = bool(results[2])
-        return np.clip(new_speed_fraction, 0, 1), flip_angle(new_rotation) if self.flipped else new_rotation % 360, shooting
+        for bullet in self.bullets:
+            bullet.new_lifetime -= 1
 
-    def update_graphics(self):
-        self.rendered_image = ImageTk.PhotoImage(self.image.rotate(self.rotation, expand=True))
-        self.canvas.coords(self.tk_image, self.position[0], self.position[1])
-        self.canvas.itemconfigure(self.tk_image, image=self.rendered_image)
+        for bullet in self.bullets + self.other_plane.bullets:
+            position = bullet.get_position(bullet in self.other_plane.bullets)
 
-        self.canvas.coords(self.tk_health_text, *np.clip([self.position[0], self.position[1] - 30], min=[20, 20], max=[GAME_WIDTH - 20, GAME_HEIGHT - 20]))
-        self.canvas.itemconfigure(self.tk_health_text, text=f"{self.health}")
+            if np.linalg.norm(position - self.position) <= PLANE_RADIUS + BULLET_RADIUS:
+                self.new_health -= 1
+                bullet.new_lifetime = 0
 
-    def destroy(self):
-        self.canvas.delete(self.tk_image)
-        self.canvas.delete(self.tk_health_text)
+    def post_tick(self):
+        self.health = self.new_health
+        self.throttle = self.desired_throttle
 
-class Bullet:
-    @dataclass
-    class BulletData:
-        x: float
-        y: float
-        rotation: float
-        lifetime: int
+        for bullet in self.bullets.copy():
+            bullet.lifetime = bullet.new_lifetime
 
-    def __init__(self: Bullet, canvas: tk.Canvas, image: Image, position: np.ndarray, rotation: float):
-        self.canvas = canvas
+            if bullet.lifetime <= 0:
+                self.bullets.remove(bullet)
+                bullet.destroy()
 
-        self.image = image
-        self.tk_image = self.canvas.create_image((0, 0))
-        self.rendered_image = None
+        ad = angle_diff(self.desired_rotation, self.rotation)
+        self.rotation = (self.rotation + np.sign(ad) * min(PLANE_TURN_SPEED, abs(ad))) % 360
+        direction = angle_to_vector(self.rotation)
+        self.position = np.clip(self.position + PLANE_SPEED * self.throttle * direction, min=[0,0], max=[GAME_WIDTH,GAME_HEIGHT])
 
-        self.position = position
-        self.rotation = rotation
-        self.lifetime = BULLET_LIFETIME
+        if self.shoot_cooldown <= 0:
+            if self.shooting:
+                self.bullets.append(Plane.Bullet(
+                    self.position + BULLET_SPAWN_DISTANCE * direction,
+                    self.rotation,
+                    self.canvas,
+                    self.truly_flipped
+                    ))
+
+                self.shoot_cooldown = PLANE_SHOOT_COOLDOWN
+        else:
+            self.shoot_cooldown -= 1
+
+        for bullet in self.bullets:
+            if not 0 <= bullet.position[0] < GAME_WIDTH:
+                bullet.rotation = (180 - bullet.rotation) % 360
     
-    def get_data(self, flipped=False) -> BulletData:
-        return self.BulletData(
-                GAME_WIDTH - self.position[0] if flipped else self.position[0],
-                self.position[1],
-                flip_angle(self.rotation) if flipped else self.rotation,
-                self.lifetime
-                )
+            if not 0 <= bullet.position[1] < GAME_HEIGHT:
+                bullet.rotation = 360 - bullet.rotation
+    
+            bullet.position = bullet.position + BULLET_SPEED * angle_to_vector(bullet.rotation)
+
+            bullet.update_graphics()
+
+        self.update_graphics()
 
     def update_graphics(self):
-        self.canvas.coords(self.tk_image, self.position[0], self.position[1])
-        self.rendered_image = ImageTk.PhotoImage(self.image.rotate(self.rotation, expand=True))
+        position = self.get_position(self.truly_flipped)
+
+        self.rendered_image = ImageTk.PhotoImage(self.image.rotate(self.get_rotation(self.truly_flipped), expand=True))
+        self.canvas.coords(self.tk_image, position[0], position[1])
         self.canvas.itemconfigure(self.tk_image, image=self.rendered_image)
 
-    def destroy(self):
-        self.canvas.delete(self.tk_image)
+        self.canvas.coords(self.tk_health_text, *np.clip([position[0], position[1] - 30], min=[20, 20], max=[GAME_WIDTH - 20, GAME_HEIGHT - 20]))
+        self.canvas.itemconfigure(self.tk_health_text, text=f"{self.health}")
 
 root = tk.Tk()
 root.title("Planes!")
@@ -135,26 +195,23 @@ canvas.pack()
 tk_game_time_text = canvas.create_text((10, 10), font=(None, 20), fill="white", anchor="nw")
 
 plane1 = Plane(
-        canvas,
         "Plane 1",
-        image_plane1,
         plane1_ai.plane_ai,
-        np.array([100, GAME_HEIGHT / 2]),
-        0.0
+        canvas,
+        image_plane1,
+        False
         )
 
 plane2 = Plane(
-        canvas,
         "Plane 2",
-        image_plane2,
         plane2_ai.plane_ai,
-        np.array([GAME_WIDTH - 100, GAME_HEIGHT / 2]),
-        180.0,
+        canvas,
+        image_plane2,
         True
         )
 
-planes: list[Plane] = [plane1, plane2]
-bullets: list[Bullet] = []
+plane1.other_plane = plane2
+plane2.other_plane = plane1
 
 time_profit = 0
 
@@ -163,89 +220,31 @@ last_tick_time = time()
 game_timer = TIME_LIMIT
 
 def tick():
+    global root
     global game_timer
     global last_tick_time
     global time_profit
-    global planes
-    global bullets
 
-    plane1_new_speed, plane1_new_rotation, plane1_shooting = plane1.call_ai(plane2, bullets)
-    plane2_new_speed, plane2_new_rotation, plane2_shooting = plane2.call_ai(plane1, bullets)
+    plane1.pre_tick()
+    plane2.pre_tick()
 
-    plane1.desired_rotation = plane1_new_rotation
-    plane1.speed_fraction = plane1_new_speed
-    plane1.shooting = plane1_shooting
-
-    plane2.desired_rotation = plane2_new_rotation
-    plane2.speed_fraction = plane2_new_speed
-    plane2.shooting = plane2_shooting
-
-    for plane in planes:
-        ad = angle_diff(plane.desired_rotation, plane.rotation, plane.flipped)
-        plane.rotation = (plane.rotation + np.sign(ad) * min(PLANE_TURN_SPEED, abs(ad))) % 360
-        plane_direction = angle_to_vector(plane.rotation)
-        plane.position = np.clip(plane.position + PLANE_SPEED * plane.speed_fraction * plane_direction, min=[0,0], max=[GAME_WIDTH-1,GAME_HEIGHT-1])
-
-        if plane.shoot_cooldown <= 0:
-            if plane.shooting:
-                bullets.append(Bullet(
-                    canvas,
-                    image_bullet,
-                    plane.position + BULLET_SPAWN_DISTANCE * plane_direction,
-                    plane.rotation
-                    ))
-
-                plane.shoot_cooldown = PLANE_SHOOT_COOLDOWN
-        else:
-            plane.shoot_cooldown -= 1
-
-    for bullet in bullets:
-        if not 0 <= bullet.position[0] < GAME_WIDTH:
-            bullet.rotation = (180 - bullet.rotation) % 360
-
-        if not 0 <= bullet.position[1] < GAME_HEIGHT:
-            bullet.rotation = 360 - bullet.rotation
-
-        bullet.position = bullet.position + BULLET_SPEED * angle_to_vector(bullet.rotation)
-
-        bullet.update_graphics()
-
-    for plane in planes:
-        for bullet in bullets:
-            if np.linalg.norm(bullet.position - plane.position) <= PLANE_RADIUS + BULLET_RADIUS:
-                plane.health -= 1
-                bullet.lifetime = 0
-
-    for bullet in [*bullets]:
-        if bullet.lifetime <= 0:
-            bullets.remove(bullet)
-            bullet.destroy()
-
-    for plane in [*planes]:
-        if plane.health <= 0:
-            planes.remove(plane)
-            plane.destroy()
-
-    for plane in planes:
-        plane.update_graphics()
-
-    for bullet in bullets:
-        bullet.update_graphics()
-        bullet.lifetime -= 1
+    plane1.post_tick()
+    plane2.post_tick()
 
     if game_timer <= 0:
-        planes = []
+        plane1.health = 0
+        plane2.health = 0
     else:
         game_timer -= 1
 
     canvas.itemconfigure(tk_game_time_text, text=f"{TICK_TIME * game_timer / 1000}")
-
-    match len(planes):
+    
+    match int(plane1.health > 0) + int(plane2.health > 0):
         case 0:
             messagebox.showinfo("Game over", "It's a draw!")
             root.quit()
         case 1:
-            messagebox.showinfo("Game over", f"{planes[0].name} wins!")
+            messagebox.showinfo("Game over", f"{(plane1 if plane1.health else plane2).name} wins!")
             root.quit()
         case _:
             new_time = time()
