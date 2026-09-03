@@ -13,7 +13,7 @@ Start by running `python main.py`. Two planes will fly across the screen firing 
 
 `plane1_ai.py` contains the code for the blue plane. This is where your code goes. Your task is to edit this file to make the plane smarter.
 
-`plane2_ai.py` contains the code for the enemy plane. Plane 2 behaves as an exact mirror image of Plane 1. This means you can copy other people's `plane1_ai.py` into your `plane2_ai.py` and verse them in a 100% fair match. In fact, if you swap the two planes' AIs around, you are guaranteed to get a perfect mirror image of the same battle, and if both Plane 1 and Plane 2 have the same AI, then they're guaranteed to draw.
+`plane2_ai.py` contains the code for the enemy plane. Plane 2 behaves as an exact mirror image of Plane 1. This means you can copy someone else's `plane1_ai.py` into your `plane2_ai.py` and verse them in a 100% fair match. In fact, if you swap the two planes' AIs around, you are guaranteed to get a perfect mirror image of the same battle, and if both Plane 1 and Plane 2 have the same AI then they're guaranteed to draw.
 
 Once you've developed your AI, share it on the [SPC Discord server](https://discord.com/invite/As9fscu6gV) to see if it can beat anyone else's. At the end of the challenge we'll also host a round robin tournament in a Discord voice channel to determine the ultimate victor.
 
