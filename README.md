@@ -1,4 +1,6 @@
 # 2D Plane AI Competition
+![an image of the plane simulation, with two planes fighting each other](visual.png)
+
 The Swinburne Programming Club has discovered an entry point to the 2D realm and can foresee a variety of ways in which it can be exploited for significant profit.
 
 However, a lot of other organisations have also discovered this realm, and thus a war for control over the realm has emerged.
