@@ -225,6 +225,8 @@ def tick():
     global last_tick_time
     global time_profit
 
+    #print(f"{(plane1.position[0] - plane2.position[0]).hex()} {(plane1.position[1] - plane2.position[1]).hex()}")
+
     plane1.pre_tick()
     plane2.pre_tick()
 
