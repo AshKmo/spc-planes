@@ -21,8 +21,8 @@ In the `examples` folder, `zain_ai.py`, `samson_ai.py` and `ash_ai.py` are examp
 
 More information about how to write the code can be found in `plane1_ai.py`.
 ## Rules
-- Your code must be purely deterministic. This means it must not receive any external inputs while it is running (except for debugging and testing). This also means **you are not allowed to generate hardware random numbers within your code**, since hardware random numbers (e.g. random numbers produced by Python's built-in `random` library) always depend on external inputs
-- Your code also must not depend on any external libraries, except for NumPy, which you are free to use
+- Your code must be purely deterministic. This means it must not receive any external inputs while it is running (except for debugging and testing). This also means **you are not allowed to generate hardware random numbers within your code**, since hardware random numbers (e.g. random numbers produced by Python's built-in `random` module) always depend on external inputs
+- Your code also must not depend on any external libraries, except for NumPy, which you are free to use. You are also still allowed to use any of the built-in Python modules such as `math`, `numbers`, `time`, etc.
 - Try not to vibecode
 
 Good luck!
